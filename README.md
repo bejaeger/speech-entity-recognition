@@ -46,6 +46,14 @@ I heavily made use of Cursor and AI to implement the solution, mostly to get a q
 
 ## Run code
 
+### Install
+Install dependencies with:
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ### Tests
 Run tests with:
 ```bash
