@@ -4,7 +4,7 @@ Module with the tokenizer for the project.
 
 import torch
 
-from src.config import MAX_SEQ_LEN
+from src.supporting_code.config import MAX_SEQ_LEN
 
 
 class SimpleTokenizer:
@@ -65,9 +65,7 @@ class SimpleTokenizer:
             Tensor: A tensor of token ids of shape (1, seq_len).
         """
         tokens = text.lower().split()
-        ids = [self.sos_token_id] + [
-            self.token_to_id.get(token, self.unk_token_id) for token in tokens
-        ]
+        ids = [self.token_to_id.get(token, self.unk_token_id) for token in tokens]
         if len(ids) > self.max_length:
             raise ValueError(
                 f"Text length {len(ids)} exceeds max_length {self.max_length}"

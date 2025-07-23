@@ -1,2 +1,5 @@
 venv/
 transducer.pth
+
+*/__pycache__/*
+test/__pycache__/*

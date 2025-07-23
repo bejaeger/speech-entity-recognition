@@ -5,12 +5,12 @@ Also does some basic preprocessing of the audio data to extract mel features.
 
 from dataclasses import dataclass
 from pathlib import Path
-from resource.text_data import TEST_DATA, TRAIN_DATA
+from resource.text_data import TRAIN_DATA
 
 import torch
 from torch.utils.data import Dataset
 
-from src.audio_feature_extractor import AudioFeatureExtractor
+from src.supporting_code.audio_feature_extractor import AudioFeatureExtractor
 
 
 @dataclass
@@ -28,11 +28,9 @@ class SpeechDataset(Dataset):
         data_folder (Path): Path to the data folder containing audio files.
     """
 
-    def __init__(self, split: str, data_folder: Path = Path("resource")) -> None:
-        if split not in ("train", "test"):
-            raise ValueError(f"Invalid split: {split}. Must be 'train' or 'test'.")
+    def __init__(self, data_folder: Path = Path("resource")) -> None:
         self.data_folder = data_folder
-        self.data = TRAIN_DATA if split == "train" else TEST_DATA
+        self.data = TRAIN_DATA
         self.extractor = AudioFeatureExtractor()
 
     def __len__(self) -> int:

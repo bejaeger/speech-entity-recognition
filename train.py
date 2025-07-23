@@ -1,101 +1,136 @@
+"""
+Script to train the transducer model.
+
+Usage example:
+    # trains until interrupted with Ctrl+C
+    python train.py
+"""
+
 import argparse
 import logging
 
 import torch
-import torch.nn.functional as F
+import torchaudio
 from torch.utils.data import DataLoader
 
-from src.dataset import SpeechDataset
 from src.model import Transducer
-from src.tokenizer import SimpleTokenizer
+from src.supporting_code.dataset import SpeechDataset
+from src.supporting_code.tokenizer import SimpleTokenizer
 
 logging.basicConfig(level=logging.INFO)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 
-NUM_EPOCHS = 100
+BATCH_SIZE = 1
+DEVICE = "cpu"  # only tested on cpu
 
 
 def main(
-    device: torch.device | str | None,
+    learning_rate: float,
+    num_epochs: int,
 ) -> None:
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    else:
-        device = torch.device(device)
+    device = torch.device(DEVICE)
 
     train_dataset = SpeechDataset(split="train")
-    test_dataset = SpeechDataset(split="test")
 
     all_vocabs = train_dataset.collect_vocabulary()
-    all_vocabs.update(test_dataset.collect_vocabulary())
     logging.info(f"Found {len(all_vocabs)} unique words in the dataset.")
-    tokenizer = SimpleTokenizer(vocab=list(all_vocabs))
+    tokenizer = SimpleTokenizer(vocab=sorted(list(all_vocabs)))
 
+    if BATCH_SIZE != 1:
+        raise ValueError(
+            f"You chose a batch size of {BATCH_SIZE}. Currently, "
+            "only a batch size of 1 is supported"
+        )
     train_loader = DataLoader(
         train_dataset,
-        batch_size=1,
+        batch_size=BATCH_SIZE,
         shuffle=True,
         collate_fn=lambda x: x,
     )
-    # test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 
     transducer = Transducer(
         vocab_size=len(tokenizer.vocab),
         max_seq_len=tokenizer.max_length,
         pad_token_id=tokenizer.pad_token_id,
+        sos_token_id=tokenizer.sos_token_id,
     ).to(device)
 
-    optimizer = torch.optim.AdamW(transducer.parameters(), lr=5e-4)
+    optimizer = torch.optim.AdamW(transducer.parameters(), lr=learning_rate)
 
-    transducer.train()
     losses = []
-    for epoch in range(NUM_EPOCHS):
-        for batch in train_loader:
-            b = batch[0]
-            mel_features_BTC = b.mel_features_BTC.to(device)
-            input_ids_transcription_BS = tokenizer.encode(b.transcription).to(device)
-            input_ids_context_BS = tokenizer.encode(" ".join(b.context)).to(device)
+    epoch = 0
 
-            logits_BSV = transducer(
-                mel_features_BTC=mel_features_BTC,
-                input_ids_transcription_BS=input_ids_transcription_BS,
-                input_ids_context_BS=input_ids_context_BS,
-            )
+    try:
+        # Handle continuous training when num_epochs is -1
+        while epoch < num_epochs or num_epochs == -1:
+            transducer.train()
+            for batch in train_loader:
+                b = batch[0]
+                mel_features_BTC = b.mel_features_BTC.to(device)
+                input_ids_transcription_BS = tokenizer.encode(b.transcription).to(
+                    device
+                )
+                input_ids_context_BS = tokenizer.encode(" ; ".join(b.context)).to(
+                    device
+                )
 
-            loss = F.cross_entropy(
-                logits_BSV.transpose(1, 2),
-                input_ids_transcription_BS,
-                ignore_index=tokenizer.pad_token_id,
-            )
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-            losses.append(loss.item())
+                logits_BTSV = transducer(
+                    mel_features_BTC=mel_features_BTC,
+                    input_ids_transcription_BS=input_ids_transcription_BS,
+                    input_ids_context_BS=input_ids_context_BS,
+                )
 
-        if epoch % 10 == 0 or epoch == NUM_EPOCHS - 1:
-            pred_token_ids = logits_BSV.argmax(dim=-1).squeeze(0).tolist()
-            # Remove padding and blank tokens
-            pred_token_ids = [
-                tid
-                for tid in pred_token_ids
-                if tid not in {tokenizer.pad_token_id, tokenizer.blank_token_id}
-            ]
-            transcription = tokenizer.decode(pred_token_ids)
+                target_lengths = torch.tensor(
+                    [input_ids_transcription_BS.shape[1]], dtype=torch.int32
+                )
+                logit_lengths = torch.tensor([logits_BTSV.shape[1]], dtype=torch.int32)
 
-            print("=" * 100)
-            print(f"Epoch {epoch} Loss: {sum(losses) / len(losses)}")
-            print(f"Biasing Context: {b.context}")
-            print(f"Transcription: {transcription}")
+                loss = torchaudio.functional.rnnt_loss(
+                    logits_BTSV,
+                    input_ids_transcription_BS.to(torch.int32),
+                    logit_lengths=logit_lengths,
+                    target_lengths=target_lengths,
+                    blank=tokenizer.blank_token_id,
+                    reduction="mean",
+                )
 
-            losses = []
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+                losses.append(loss.item())
+
+            if epoch % 10 == 0 or (num_epochs != -1 and epoch == num_epochs - 1):
+                transducer.eval()
+                with torch.no_grad():
+                    pred_token_ids = transducer.inference(
+                        mel_features_BTC=mel_features_BTC,
+                        input_ids_context_BS=input_ids_context_BS,
+                        blank_token_id=tokenizer.blank_token_id,
+                        max_length=50,
+                    )
+                    transcription = tokenizer.decode(pred_token_ids)
+
+                print("=" * 100)
+                print(f"Epoch {epoch} Loss: {sum(losses) / len(losses):.3f}")
+                print(f"Ground Truth: {b.transcription}")
+                print(f"Biasing Context: {b.context}")
+                print(f"Predicted Transcription: `{transcription}`")
+
+                losses = []
+
+            epoch += 1
+
+    except KeyboardInterrupt:
+        print("\nTraining interrupted by user. Saving model...")
 
     torch.save(transducer.state_dict(), "transducer.pth")
-
+    print("Model saved to transducer.pth")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--learning-rate", type=float, default=1e-3)
+    parser.add_argument("--num-epochs", type=int, default=-1)
     args = parser.parse_args()
     main(**vars(args))

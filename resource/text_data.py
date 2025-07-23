@@ -20,22 +20,4 @@ TRAIN_DATA: list[tuple[str, str, list[str]]] = [
     ],
 ]
 
-TEST_DATA: list[tuple[str, str, list[str]]] = [
-    [
-        "herr_kalinowski_ein_glas_wasser_getrunken.mp3",
-        "herr kalinowski hat einen glas wasser getrunken",
-        ["herr kalinowski", "frau berbel"],
-    ],
-    [
-        "herr_kalinowski_ein_glas_wasser_getrunken.mp3",
-        "herr calinovski hat einen glas wasser getrunken",
-        ["herr calinovski", "Fachwort"],
-    ],
-    [
-        "herr_kalinowski_ein_glas_wasser_getrunken.mp3",
-        "herr kalinowski hat einen glas wasser getrunken",
-        ["herr calinovski", "frau berbel"],
-    ],
-]
-
-__all__ = ["TRAIN_DATA", "TEST_DATA"]
+__all__ = ["TRAIN_DATA"]

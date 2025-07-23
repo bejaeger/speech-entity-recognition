@@ -5,12 +5,12 @@ Usage:
 
 import torch
 from pathlib import Path
-from src.dataset import SpeechDataset, SpeechSample
+from src.supporting_code.dataset import SpeechDataset, SpeechSample
 
 
 def test_dummy_speech_dataset_basic():
     """Basic test to check DummySpeechDataset returns a SpeechSample with correct types."""
-    dataset = SpeechDataset(split="train", data_folder=Path("resource"))
+    dataset = SpeechDataset(data_folder=Path("resource"))
     assert len(dataset) > 1
     sample = dataset[0]
     assert isinstance(sample, SpeechSample)

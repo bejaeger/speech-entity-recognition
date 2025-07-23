@@ -24,9 +24,9 @@ class AudioFeatureExtractor:
         n_mels: Number of mel filterbanks for mel spectrogram.
     """
 
-    n_fft: int = 1024
-    hop_length: int = 512
-    n_mels: int = 80
+    N_FFT: int = 1024
+    HOP_LENGTH: int = 512
+    N_MELS: int = 80
 
     def compute_mel_spectrogram(self, audio_file_path: Path) -> torch.Tensor:
         """
@@ -43,9 +43,9 @@ class AudioFeatureExtractor:
             wave = wave.unsqueeze(0)
         mel_spectrogram_transform = torchaudio.transforms.MelSpectrogram(
             sample_rate=sample_rate,
-            n_fft=self.n_fft,
-            hop_length=self.hop_length,
-            n_mels=self.n_mels,
+            n_fft=self.N_FFT,
+            hop_length=self.HOP_LENGTH,
+            n_mels=self.N_MELS,
         )
         mel_spec_1CT = mel_spectrogram_transform(wave)
         mel_spec_1TC = mel_spec_1CT.transpose(1, 2)

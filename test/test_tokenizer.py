@@ -1,4 +1,4 @@
-from src.tokenizer import SimpleTokenizer
+from src.supporting_code.tokenizer import SimpleTokenizer
 
 
 def test_encode_decode():
