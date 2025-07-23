@@ -11,7 +11,7 @@ Sketch of a method to enhance spoken named entity recognition in speech recognit
 ## Proposed solution to the problem
 
 The code implements a transducer model (based on an LSTM audio encoder and a transformer-based prediction network) that
-is biased towards a set of vocabulary encoded with a context encoder. This makes the model learn to recognize the entities in the context. To "test" this method, a very naive training pipeline is implemented that overfits on the audio provided in the assignment. The model outputs "calinovski" if "calinovski" is in the context/list of entities and "kalinowski" if "kalinowski" is in the context/list of entities. This is a very rough sketch and far from being a final solution.
+is biased towards a set of vocabulary encoded with a context encoder. This makes the model learn to recognize the entities in the context. To "test" this method, a very naive training pipeline is implemented that overfits on the audio provided in the assignment. The model outputs "calinovski" if "calinovski" is in the context/list of entities and "kalinowski" if "kalinowski" is in the context/list of entities. This is a very rough sketch and far from being a final solution. For example, it's likely that the model trained below just overfits with the context encoder and memorizes the sentence.
 
 ## Deliverable
 
@@ -33,11 +33,12 @@ I decided to implement the second idea because it's a more modern approach.
 The main deliverable was to implement a sketch of a pyTorch model of a suggested architecture. This can be found in `src/model.py` (ContextEncoder and the way it is used in the Transducer model).
 The supporting code to run the training pipeline is kept separate and can be found in `src/supporting_code/` and `train.py`.
 
-## Possible extensions
+## Possible extensions / ideas
 
 Some ideas for extensions to the current solution:
 - The cross attention to the encoded context could be added at different stages in the transducer model, e.g. after the audio encoder and before the joint network.
 - The context encoder could make use of pretrained models, such as embedding models like [Multilingual-E5-small](https://huggingface.co/intfloat/multilingual-e5-small)
+- The context could also be enriched with a more detailed description. For example instead of just adding the words "Herr Kalinowski" one could add something like "Type: Name of person, Prefixes: Herr, Content: Kalinowski". A pretrained transformer would then encode this into a rich representation that the ASR model can make better use of.
 
 ## Tool Use
 

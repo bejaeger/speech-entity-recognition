@@ -14,6 +14,7 @@ def test_context_encoder_forward():
     encoder = ContextEncoder(
         vocab_size=len(dummy_vocab),
         pad_token_id=0,
+        output_dim=32,
     )
     # Simulate a batch of 2 sequences, both padded to max_seq_len
     input_ids_1S = torch.tensor(

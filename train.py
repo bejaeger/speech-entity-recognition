@@ -7,7 +7,6 @@ Usage example:
 """
 
 import argparse
-import logging
 
 import torch
 import torchaudio
@@ -17,7 +16,6 @@ from src.model import Transducer
 from src.supporting_code.dataset import SpeechDataset
 from src.supporting_code.tokenizer import SimpleTokenizer
 
-logging.basicConfig(level=logging.INFO)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 
@@ -31,10 +29,10 @@ def main(
 ) -> None:
     device = torch.device(DEVICE)
 
-    train_dataset = SpeechDataset(split="train")
+    train_dataset = SpeechDataset()
 
     all_vocabs = train_dataset.collect_vocabulary()
-    logging.info(f"Found {len(all_vocabs)} unique words in the dataset.")
+    print(f"Found {len(all_vocabs)} unique words in the dataset.")
     tokenizer = SimpleTokenizer(vocab=sorted(list(all_vocabs)))
 
     if BATCH_SIZE != 1:
