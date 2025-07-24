@@ -24,7 +24,6 @@ class SpeechDataset(Dataset):
     """Torch Dataset for dummy speech entity recognition data.
 
     Args:
-        split (str): Either "train" or "test".
         data_folder (Path): Path to the data folder containing audio files.
     """
 
