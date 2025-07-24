@@ -132,15 +132,12 @@ class TransformerPredictionNetwork(nn.Module):
 
     def _init_weights(self) -> None:
         """Initialize parameters following best practices for transformer decoders."""
-        # Initialize embedding with normal distribution
         nn.init.normal_(
             self.embedding.weight, mean=0.0, std=1.0 / math.sqrt(self.embed_dim)
         )
 
-        # Initialize positional encoding with small random values
         nn.init.normal_(self.positional_encoding, mean=0.0, std=0.1)
 
-        # Initialize output layer with Xavier uniform and smaller scale
         nn.init.xavier_uniform_(self.output_layer.weight, gain=0.5)
         nn.init.zeros_(self.output_layer.bias)
 
@@ -206,13 +203,11 @@ class JointNetwork(nn.Module):
         self,
         acoustic_dim: int,
         prediction_dim: int,
-        vocab_size: int,
         joint_dim: int = JOINT_DIM,
     ):
         super().__init__()
         self.acoustic_dim = acoustic_dim
         self.prediction_dim = prediction_dim
-        self.vocab_size = vocab_size
         self.joint_dim = joint_dim
         self.linear = nn.Linear(acoustic_dim + prediction_dim, joint_dim)
         self.activation = nn.ReLU()
@@ -222,7 +217,6 @@ class JointNetwork(nn.Module):
 
     def _init_weights(self) -> None:
         """Initialize joint network parameters."""
-        # Initialize linear layers with Xavier uniform
         nn.init.xavier_uniform_(self.linear.weight)
         nn.init.zeros_(self.linear.bias)
 

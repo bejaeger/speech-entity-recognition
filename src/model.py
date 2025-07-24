@@ -16,7 +16,7 @@ class ContextEncoder(nn.Module):
 
     Takes a sequence of token ids and returns a hidden representation of the context.
     This is intended to be used in an ASR pipeline to bias the model towards a specific context,
-    e.g. a list of entities. The output of the ContextEncoder can therefore be
+    e.g. a list of entities. To this end, the output of the ContextEncoder can e.g. be
     attended to via cross-attention.
 
     Args:
@@ -72,15 +72,13 @@ class ContextEncoder(nn.Module):
 
     def _init_weights(self) -> None:
         """Initialize parameters following best practices for transformer models."""
-        # Initialize embedding with normal distribution
         nn.init.normal_(
             self.embedding.weight, mean=0.0, std=1.0 / math.sqrt(self.embed_dim)
         )
-        # Zero out padding token embedding
+
         with torch.no_grad():
             self.embedding.weight[self.pad_token_id].fill_(0)
 
-        # Initialize output layer with Xavier uniform
         nn.init.xavier_uniform_(self.output_layer.weight)
         nn.init.zeros_(self.output_layer.bias)
 

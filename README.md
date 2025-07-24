@@ -27,7 +27,7 @@ There are two main ideas I considered implementing:
 - Shallow fusion: Boosting certain paths during decoding, based on a list of entities/context. This is the traditional way to improve transcription of unknown entities or jargon. Upon research, this generally seems to work well but has limitations in terms of accuracy, especially going to longer external contexts.
 - Deep context biasing: Adding a context encoder to the transducer model and learn to attend to a set of vocabularies/context. 
 
-I decided to implement the second idea because it's a more modern approach.
+I decided to implement the second idea because it's a more modern and likely scalable approach.
 
 ### Code
 The main deliverable was to implement a sketch of a pyTorch model of a suggested architecture. This can be found in `src/model.py` (ContextEncoder and the way it is used in the Transducer model).
