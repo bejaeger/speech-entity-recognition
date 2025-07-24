@@ -74,7 +74,6 @@ def test_joint_network_output_shape_and_type():
     model = JointNetwork(
         acoustic_dim=acoustic_dim,
         prediction_dim=prediction_dim,
-        vocab_size=100,
         joint_dim=joint_dim,
     )
     output = model(acoustic_hidden_BC, prediction_hidden_BSC)

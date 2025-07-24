@@ -134,7 +134,6 @@ class Transducer(nn.Module):
         self.joint_network = JointNetwork(
             acoustic_dim=self.lstm_encoder.hidden_dim,
             prediction_dim=self.transformer_prediction_network.output_dim,
-            vocab_size=vocab_size,
         )
 
         self.context_encoder = ContextEncoder(
