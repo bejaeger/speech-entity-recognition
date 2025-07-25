@@ -10,7 +10,7 @@ Sketch of a method to enhance spoken named entity recognition in speech recognit
 
 ## Proposed solution to the problem
 
-![Solution Architecture](assets/illustration.pdf)
+![Solution Architecture](assets/design_choices.jpeg)
 
 The code implements a transducer model (based on an LSTM audio encoder and a transformer-based prediction network) that
 is biased towards a set of vocabulary encoded with a context encoder. This makes the model learn to recognize the entities in the context. To "test" this method, a very naive training pipeline is implemented that overfits on the audio provided in the assignment. The model outputs "calinovski" if "calinovski" is in the context/list of entities and "kalinowski" if "kalinowski" is in the context/list of entities. This is a very rough sketch and far from being a final solution. For example, it's likely that the model trained below just overfits with the context encoder and memorizes the sentence.
